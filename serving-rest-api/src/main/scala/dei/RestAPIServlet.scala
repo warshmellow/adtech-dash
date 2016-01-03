@@ -13,6 +13,11 @@ case class ClassifierMetricsBundle(
                                     timestamp: Long,
                                     classiferLastRetrained: Long)
 
+case class ClassifierMetricsBundleSeq(classifierMetricsBundles: Seq[ClassifierMetricsBundle]) {
+  def size() = classifierMetricsBundles.size
+  def isEmpty() = size == 0
+}
+
 class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
 
   // Sets up automatic case class to JSON output serialization, required by
@@ -28,19 +33,23 @@ class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
     val until = params.getOrElse("until", "1451793501").toInt
 
     if (since < until) {
-      List(
-        Map("precision" -> 0.6,
-        "recall" -> 0.7,
-        "f1" -> 0.8,
-        "timestamp" -> 1451793414,
-        "classiferLastRetrained" -> 1451793400),
-        Map("precision" -> 0.61,
-        "recall" -> 0.71,
-        "f1" -> 0.81,
-        "timestamp" -> 1451793474,
-        "classiferLastRetrained" -> 1451793400))
+      val resultList = List(
+        ClassifierMetricsBundle(
+          precision= 0.6,
+          recall= 0.7,
+          f1= 0.8,
+          timestamp= 1451793414,
+          classiferLastRetrained= 1451793400),
+        ClassifierMetricsBundle(
+          precision= 0.61,
+          recall= 0.71,
+          f1= 0.81,
+          timestamp= 1451793474,
+          classiferLastRetrained= 1451793400))
+
+      ClassifierMetricsBundleSeq(resultList)
     }
-      else List()
+    else ClassifierMetricsBundleSeq(List())
   }
 
   notFound {

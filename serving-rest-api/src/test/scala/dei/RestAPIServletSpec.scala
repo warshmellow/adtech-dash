@@ -28,17 +28,15 @@ class RestAPIServletSpec extends ScalatraFlatSpec with Matchers {
     get("/classifier/metrics.json",
       Map("since" -> "1451793412", "until" -> "1451793500")) {
       status should equal (200)
-      val parsedBody = parse(body)
-      parsedBody.values
+      parse(body).extract[ClassifierMetricsBundleSeq]
     }
   }
 
-  it should "respond with JSON when given parameters since > until" in {
+  it should "respond with empty JSON when given parameters since >= until" in {
     get("/classifier/metrics.json",
-      Map("since" -> "1451793510", "until" -> "1451793500")) {
+      Map("since" -> "1451793500", "until" -> "1451793500")) {
       status should equal (200)
-      val parsedBody = parse(body)
-      parsedBody.values
+      parse(body).extract[ClassifierMetricsBundleSeq] shouldBe empty
     }
   }
 }
