@@ -30,6 +30,8 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-io:9.3.0.v20150612" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-servlet:9.3.0.v20150612" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-security:9.3.0.v20150612" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-webapp:9.3.0.v20150612" level="project" />
+    <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-xml:9.3.0.v20150612" level="project" />
     <orderEntry type="library" name="Maven: org.scalatra:scalatra_2.10:2.3.1" level="project" />
     <orderEntry type="library" name="Maven: org.scalatra:scalatra-common_2.10:2.3.1" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.10" level="project" />
@@ -46,8 +48,6 @@
     <orderEntry type="library" name="Maven: org.scala-lang:scala-reflect:2.10.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.scalatra:scalatra-scalatest_2.10:2.3.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.scalatra:scalatra-test_2.10:2.3.1" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.eclipse.jetty:jetty-webapp:9.2.10.v20150310" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.eclipse.jetty:jetty-xml:9.2.10.v20150310" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-all:1.10.19" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.commons:commons-lang3:3.3.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.apache.httpcomponents:httpclient:4.3.6" level="project" />
