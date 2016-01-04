@@ -20,14 +20,14 @@ class RestAPIServletSpec extends ScalatraFlatSpec with Matchers {
   behavior of "GET classifier/metrics.json"
   it should "respond with JSON without parameters" in {
     get("/classifier/metrics.json") {
-      status should equal (200)
+      status should equal(200)
     }
   }
 
   it should "respond with JSON when given parameters since and until" in {
     get("/classifier/metrics.json",
       Map("since" -> "1451793412", "until" -> "1451793500")) {
-      status should equal (200)
+      status should equal(200)
       parse(body).extract[ClassifierMetricsBundleSeq]
     }
   }
@@ -35,8 +35,15 @@ class RestAPIServletSpec extends ScalatraFlatSpec with Matchers {
   it should "respond with empty JSON when given parameters since >= until" in {
     get("/classifier/metrics.json",
       Map("since" -> "1451793500", "until" -> "1451793500")) {
-      status should equal (200)
+      status should equal(200)
       parse(body).extract[ClassifierMetricsBundleSeq] shouldBe empty
+    }
+  }
+
+  ignore should "respond with bad request on non Long since/until" in {
+    get("/classifier/metrics.json",
+      Map("since" -> "foo", "until" -> "bar")) {
+      status should equal(400)
     }
   }
 }
