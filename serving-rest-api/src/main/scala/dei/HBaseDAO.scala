@@ -4,19 +4,19 @@ import org.apache.hadoop.hbase.client.{Put, Table}
 import org.apache.hadoop.hbase.util.Bytes
 
 case class HBaseObj(
-                     rowKey: String,
+                     rowKey: Long,
                      columnFamily: String,
                      columnValuePairs: Map[String, String])
 
 object HBaseDAO {
   def toHBaseObj(metricsBundle: ClassifierMetricsBundle): HBaseObj = {
-    val rowKey = metricsBundle.timestamp.toString
+    val rowKey = metricsBundle.timestamp
     val columnFamily = "d"
     val columnValuePairs = Map(
-      "precision" -> metricsBundle.toString,
-      "recall" -> metricsBundle.toString,
-      "f1" -> metricsBundle.toString,
-      "classifierLastRetrained" -> metricsBundle.toString
+      "precision" -> metricsBundle.precision.toString,
+      "recall" -> metricsBundle.recall.toString,
+      "f1" -> metricsBundle.f1.toString,
+      "classifierLastRetrained" -> metricsBundle.classiferLastRetrained.toString
     )
     HBaseObj(rowKey, columnFamily, columnValuePairs)
   }
