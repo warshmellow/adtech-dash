@@ -21,9 +21,6 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
   @Captor var putCaptor: ArgumentCaptor[Put] = null
 
   @Test
-  def testHello() = { assert(0 == 0)}
-
-  @Test
   def testInsertRecord() = {
     when(connection.getTable(TableName.valueOf("tablename"))).thenReturn(table)
 
