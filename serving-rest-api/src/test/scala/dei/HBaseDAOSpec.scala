@@ -1,7 +1,7 @@
 package dei
 
 import org.apache.hadoop.hbase.{TableName, HBaseConfiguration}
-import org.apache.hadoop.hbase.client.{Put, ConnectionFactory, Table}
+import org.apache.hadoop.hbase.client.{Result, Put, ConnectionFactory, Table}
 import org.apache.hadoop.hbase.util.Bytes
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,6 +18,7 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
   @Mock val conf = HBaseConfiguration.create
   @Mock val connection = ConnectionFactory.createConnection(conf)
   @Mock var table: Table = null
+  @Mock var result: Result = null
   @Captor var putCaptor: ArgumentCaptor[Put] = null
 
   @Test
@@ -28,11 +29,12 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
       precision= 0.6,
       recall= 0.7,
       f1= 0.8,
-      timestamp= 1451793414,
-      classiferLastRetrained= 1451793400)
+      timestamp= 1451793414L,
+      classifierLastRetrained= 1451793400L)
 
     val obj = HBaseDAO.toHBaseObj(metricsBundle)
 
+    // Use HBaseDAO to insert record
     HBaseDAO.put(table, obj)
     verify(table).put(putCaptor.capture())
     val put = putCaptor.getValue()
@@ -57,5 +59,47 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
           put.get(Bytes.toBytes("d"), Bytes.toBytes(col)).get(0).getValue())
       }
     }
+  }
+
+  @Test
+  def testGetRecord() = {
+    // On empty row key, results should be empty
+    // On nonempty row key, results should be non empty
+    when(connection.getTable(TableName.valueOf("tablename"))).thenReturn(table)
+
+    // "Contents" of table
+    val metricsBundle = ClassifierMetricsBundle(
+      precision= 0.6,
+      recall= 0.7,
+      f1= 0.8,
+      timestamp= 1451793414L,
+      classifierLastRetrained= 1451793400L)
+
+    val emptyRowKey: Long = 1451793400L
+    val nonEmptyRowKey: Long = 1451793414L
+
+    when(table.get(HBaseDAO.toGet(emptyRowKey))).thenReturn(result)
+    when(result.isEmpty()).thenReturn(true)
+
+    val emptyResult = HBaseDAO.get(table, emptyRowKey)
+
+    assertResult(true) { emptyResult.isEmpty }
+
+
+    when(table.get(HBaseDAO.toGet(nonEmptyRowKey))).thenReturn(result)
+    when(result.isEmpty()).thenReturn(false)
+    when(result.getRow()).thenReturn(Bytes.toBytes(1451793414L))
+    when(result.getValue(Bytes.toBytes("d"), Bytes.toBytes("precision"))).
+      thenReturn(Bytes.toBytes(0.6))
+    when(result.getValue(Bytes.toBytes("d"), Bytes.toBytes("recall"))).
+      thenReturn(Bytes.toBytes(0.7))
+    when(result.getValue(Bytes.toBytes("d"), Bytes.toBytes("f1"))).
+      thenReturn(Bytes.toBytes(0.8))
+    when(result.getValue(Bytes.toBytes("d"), Bytes.toBytes("classifierLastRetrained"))).
+      thenReturn(Bytes.toBytes(1451793400L))
+
+    val nonEmptyResult = HBaseDAO.get(table, nonEmptyRowKey)
+
+    assertResult(false) { nonEmptyResult.isEmpty }
   }
 }
