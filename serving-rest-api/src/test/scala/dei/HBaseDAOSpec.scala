@@ -38,7 +38,7 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
     val put = putCaptor.getValue()
 
     assertResult(obj.rowKey) {
-      Bytes.toString(put.getRow())
+      Bytes.toLong(put.getRow())
     }
   }
 }
