@@ -37,8 +37,25 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
     verify(table).put(putCaptor.capture())
     val put = putCaptor.getValue()
 
+    // Assert Row Key of Put is correct
     assertResult(obj.rowKey) {
       Bytes.toLong(put.getRow())
+    }
+    // Assert Column Family and Columns of Put are correct
+    List("precision", "recall", "classifierLastRetrained").foreach { x =>
+      assert(put.has(Bytes.toBytes("d"), Bytes.toBytes(x)))
+    }
+    // Assert Values of Put are correct
+    Map(
+      "precision" -> "0.6",
+      "recall" -> "0.7",
+      "f1" -> "0.8",
+      "classifierLastRetrained" -> "1451793400").
+    foreach {
+      case (col, value) => assertResult(value) {
+        Bytes.toString(
+          put.get(Bytes.toBytes("d"), Bytes.toBytes(col)).get(0).getValue())
+      }
     }
   }
 }
