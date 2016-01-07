@@ -1,7 +1,10 @@
 package dei
 
-import org.apache.hadoop.hbase.client.{Get, Put, Result, Table}
+import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
+
+import scala.collection.JavaConversions._
+import scala.util.{Failure, Success, Try}
 
 case class HBaseObj(
                      rowKey: Long,
@@ -24,11 +27,10 @@ object HBaseDAO {
   def toPut(hBaseObj: HBaseObj) = {
     val p = new Put(Bytes.toBytes(hBaseObj.rowKey))
     hBaseObj.columnValuePairs.foreach {
-      case (column, value) => {
+      case (column, value) =>
         p.addColumn(Bytes.toBytes(hBaseObj.columnFamily),
           Bytes.toBytes(column),
           Bytes.toBytes(value))
-      }
     }
     p
   }
@@ -47,7 +49,7 @@ object HBaseDAO {
     else {
       val paramVal = List("precision", "recall", "f1", "timestamp", "classifierLastRetrained").map {
         x =>
-          if (x == "timestamp") (x, result.getRow())
+          if (x == "timestamp") (x, result.getRow)
           else (x, result.getValue(Bytes.toBytes("d"), Bytes.toBytes(x)))
       }
       val paramValMap = paramVal.toMap
@@ -65,6 +67,23 @@ object HBaseDAO {
         timestamp= t,
         classifierLastRetrained= c
       ))
+    }
+  }
+
+  def scan(table: Table, startRowKey: Long, stopRowKey: Long):
+    Seq[Option[ClassifierMetricsBundle]] = {
+    val scan = new Scan()
+    scan.setStartRow(Bytes.toBytes(startRowKey))
+    scan.setStopRow(Bytes.toBytes(stopRowKey))
+
+    scan.setCaching(500)
+    val scanner = table.getScanner(scan)
+    val resultsAsBundles = scanner.map(resultToClassifierMetricsBundle)
+    scanner.close()
+
+    Try(resultsAsBundles.toList) match {
+      case Success(stuff) => stuff
+      case Failure(e) => List()
     }
   }
 }

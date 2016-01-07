@@ -1,13 +1,13 @@
 package dei
 
-import org.apache.hadoop.hbase.{TableName, HBaseConfiguration}
-import org.apache.hadoop.hbase.client.{Result, Put, ConnectionFactory, Table}
+import org.apache.hadoop.hbase.client.{ConnectionFactory, Put, Result, Table}
 import org.apache.hadoop.hbase.util.Bytes
-import org.junit.Test
+import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
+import org.junit.{Ignore, Test}
 import org.junit.runner.RunWith
-import org.mockito.{ArgumentCaptor, Captor, Mock}
 import org.mockito.Mockito._
 import org.mockito.runners.MockitoJUnitRunner
+import org.mockito.{ArgumentCaptor, Captor, Mock}
 import org.scalatest.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatra.test.scalatest.ScalatraFlatSpec
@@ -37,11 +37,11 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
     // Use HBaseDAO to insert record
     HBaseDAO.put(table, obj)
     verify(table).put(putCaptor.capture())
-    val put = putCaptor.getValue()
+    val put = putCaptor.getValue
 
     // Assert Row Key of Put is correct
     assertResult(obj.rowKey) {
-      Bytes.toLong(put.getRow())
+      Bytes.toLong(put.getRow)
     }
     // Assert Column Family and Columns of Put are correct
     List("precision", "recall", "classifierLastRetrained").foreach { x =>
@@ -56,7 +56,7 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
     foreach {
       case (col, value) => assertResult(value) {
         Bytes.toString(
-          put.get(Bytes.toBytes("d"), Bytes.toBytes(col)).get(0).getValue())
+          put.get(Bytes.toBytes("d"), Bytes.toBytes(col)).get(0).getValue)
       }
     }
   }
@@ -79,7 +79,7 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
     val nonEmptyRowKey: Long = 1451793414L
 
     when(table.get(HBaseDAO.toGet(emptyRowKey))).thenReturn(result)
-    when(result.isEmpty()).thenReturn(true)
+    when(result.isEmpty).thenReturn(true)
 
     val emptyResult = HBaseDAO.get(table, emptyRowKey)
 
@@ -87,8 +87,8 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
 
 
     when(table.get(HBaseDAO.toGet(nonEmptyRowKey))).thenReturn(result)
-    when(result.isEmpty()).thenReturn(false)
-    when(result.getRow()).thenReturn(Bytes.toBytes(1451793414L))
+    when(result.isEmpty).thenReturn(false)
+    when(result.getRow).thenReturn(Bytes.toBytes(1451793414L))
     when(result.getValue(Bytes.toBytes("d"), Bytes.toBytes("precision"))).
       thenReturn(Bytes.toBytes(0.6))
     when(result.getValue(Bytes.toBytes("d"), Bytes.toBytes("recall"))).
@@ -101,5 +101,44 @@ class HBaseDAOSpec extends ScalatraFlatSpec with Matchers with MockitoSugar {
     val nonEmptyResult = HBaseDAO.get(table, nonEmptyRowKey)
 
     assertResult(false) { nonEmptyResult.isEmpty }
+  }
+
+  @Ignore @Test
+  def testScanRecords() = {
+
+    when(connection.getTable(TableName.valueOf("tablename"))).thenReturn(table)
+    // "Contents" of table
+    // Different timestamps
+    val metricsBundle = List(
+      ClassifierMetricsBundle(
+      precision= 0.6,
+      recall= 0.7,
+      f1= 0.8,
+      timestamp= 1451793401L,
+      classifierLastRetrained= 1451793400L),
+    ClassifierMetricsBundle(
+      precision= 0.6,
+      recall= 0.7,
+      f1= 0.8,
+      timestamp= 1451793404L,
+      classifierLastRetrained= 1451793400L),
+    ClassifierMetricsBundle(
+      precision= 0.6,
+      recall= 0.7,
+      f1= 0.8,
+      timestamp= 1451793420L,
+      classifierLastRetrained= 1451793400L))
+
+    val emptyStartRowKey: Long = 1451793300L
+    val emptyStopRowKey: Long = 1451793399L
+    val nonEmptyStartRowKey: Long = 1451793404L
+    val nonEmptyStopRowKey: Long = 1451793422L
+
+    val emptyRecords = HBaseDAO.scan(table, emptyStartRowKey, emptyStopRowKey)
+
+    assertResult(true) { emptyRecords.isEmpty }
+
+    val nonEmptyRecords = HBaseDAO.scan(table, nonEmptyStartRowKey, nonEmptyStopRowKey)
+    assertResult(false) { nonEmptyRecords.isEmpty }
   }
 }
