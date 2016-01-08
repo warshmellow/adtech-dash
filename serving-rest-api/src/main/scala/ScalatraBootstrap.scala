@@ -1,11 +1,11 @@
-import dei.RestAPIServlet
-import org.scalatra.LifeCycle
 import javax.servlet.ServletContext
 
-class ScalatraBootstrap extends LifeCycle {
+import dei.{HBaseClientInit, RestAPIServletWithHBaseConfig}
+import org.scalatra.LifeCycle
+
+class ScalatraBootstrap extends LifeCycle with HBaseClientInit {
 
   override def init(context: ServletContext) {
-
-    context mount (new RestAPIServlet, "/*")
+    context mount (new RestAPIServletWithHBaseConfig(hBaseConfig), "/*")
   }
 }
