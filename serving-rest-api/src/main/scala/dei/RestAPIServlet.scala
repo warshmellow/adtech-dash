@@ -1,8 +1,10 @@
 package dei
 
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase.TableName
 import org.scalatra.ScalatraServlet
 // JSON-related libraries
-import org.json4s.{JValue, DefaultFormats, Formats}
+import org.json4s.{DefaultFormats, Formats, JValue}
 // JSON handling support from Scalatra
 import org.scalatra.json._
 
@@ -18,6 +20,7 @@ case class ClassifierMetricsBundleSeq(classifierMetricsBundles: Seq[ClassifierMe
   def isEmpty() = size == 0
 }
 
+
 class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
 
   // Sets up automatic case class to JSON output serialization, required by
@@ -28,34 +31,28 @@ class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
-  get("/classifier/metrics.json") {
-    val since = params.getOrElse("since", "1451793414").toInt
-    val until = params.getOrElse("until", "1451793501").toInt
-
-    if (since < until) {
-      val resultList = List(
-        ClassifierMetricsBundle(
-          precision= 0.6,
-          recall= 0.7,
-          f1= 0.8,
-          timestamp= 1451793414,
-          classifierLastRetrained= 1451793400),
-        ClassifierMetricsBundle(
-          precision= 0.61,
-          recall= 0.71,
-          f1= 0.81,
-          timestamp= 1451793474,
-          classifierLastRetrained= 1451793400))
-
-      ClassifierMetricsBundleSeq(resultList)
-    }
-    else ClassifierMetricsBundleSeq(List())
-  }
-
   notFound {
     serveStaticResource() getOrElse resourceNotFound()
   }
 
   override def render(value: JValue)(implicit formats: Formats): JValue =
     value.camelizeKeys
+}
+
+
+case class RestAPIServletWithHBaseConfig(hBaseConf: Configuration)
+  extends RestAPIServlet with HBaseSessionSupport {
+
+  def hBaseConfig = hBaseConf
+
+  get("/classifier/metrics.json") {
+    val startRowKey = params("since").toLong
+    val stopRowKey = params("until").toLong
+    val table = conn.getTable(TableName.valueOf("tablename"))
+    HBaseDAO.scan(table, startRowKey, stopRowKey).
+      filter(x => !x.isEmpty).
+      map {
+        case Some(bundle) => bundle
+        case None => None }
+  }
 }

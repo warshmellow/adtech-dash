@@ -1,17 +1,20 @@
 package dei
 
-import org.scalatest.Matchers
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
-import org.scalatra.test.scalatest.ScalatraFlatSpec
-
+import org.apache.hadoop.hbase.HBaseConfiguration
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatra.test.scalatest.ScalatraFlatSpec
+
 
 @RunWith(classOf[JUnitRunner])
-class RestAPIServletSpec extends ScalatraFlatSpec with Matchers {
+class RestAPIServletSpec extends ScalatraFlatSpec
+  with Matchers with BeforeAndAfterAll with MockitoSugar {
   // `RestAPIServlet` is your app which extends ScalatraServlet
-  addServlet(classOf[RestAPIServlet], "/*")
+  addServlet(new RestAPIServletWithHBaseConfig(HBaseConfiguration.create), "/*")
 
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
@@ -25,10 +28,17 @@ class RestAPIServletSpec extends ScalatraFlatSpec with Matchers {
   }
 
   it should "respond with JSON when given parameters since and until" in {
+    val emptyStartRowKey: Long = 1451793300L
+    val emptyStopRowKey: Long = 1451793399L
+
+    val nonEmptyStartRowKey: Long = 1451793404L
+    val nonEmptyStopRowKey: Long = 1451793422L
+
+
     get("/classifier/metrics.json",
-      Map("since" -> "1451793412", "until" -> "1451793500")) {
+      Map("since" -> emptyStartRowKey.toString, "until" -> emptyStopRowKey.toString)) {
       status should equal(200)
-      parse(body).extract[ClassifierMetricsBundleSeq]
+      parse(body).extract[ClassifierMetricsBundleSeq] shouldBe empty
     }
   }
 
@@ -40,7 +50,7 @@ class RestAPIServletSpec extends ScalatraFlatSpec with Matchers {
     }
   }
 
-  ignore should "respond with bad request on non Long since/until" in {
+  it should "respond with bad request on non Long since/until" in {
     get("/classifier/metrics.json",
       Map("since" -> "foo", "until" -> "bar")) {
       status should equal(400)
