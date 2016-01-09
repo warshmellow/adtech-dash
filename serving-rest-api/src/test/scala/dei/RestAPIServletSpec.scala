@@ -58,9 +58,9 @@ class RestAPIServletSpec extends ScalatraFlatSpec
   }
 
   behavior of "GET classifier/metrics.json"
-  ignore should "respond with JSON without parameters" in {
+  it should "respond with bad request to JSON without parameters" in {
     get("/classifier/metrics.json") {
-      status should equal(200)
+      status should equal(400)
     }
   }
 
@@ -85,7 +85,7 @@ class RestAPIServletSpec extends ScalatraFlatSpec
     }
   }
 
-  ignore should "respond with empty JSON when given parameters since >= until" in {
+  it should "respond with empty JSON when given parameters since >= until" in {
     get("/classifier/metrics.json",
       Map("since" -> "1451793500", "until" -> "1451793500")) {
       status should equal(200)

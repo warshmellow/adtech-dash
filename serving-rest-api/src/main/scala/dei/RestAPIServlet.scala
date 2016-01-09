@@ -60,6 +60,12 @@ trait RestAPIServletRoutes extends ScalatraServlet {
   def connection: Connection
 
   get("/classifier/metrics.json") {
+    (params.get("since"), params.get("until")) match {
+      case (None,_) => halt(400)
+      case (_, None) => halt(400)
+      case _ => None
+    }
+
     val startRowKey = params("since").toLong
     val stopRowKey = params("until").toLong
 
