@@ -1,8 +1,10 @@
 package dei
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.client.Connection
+import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.scalatra.ScalatraServlet
+
 // JSON-related libraries
 import org.json4s.{DefaultFormats, Formats, JValue}
 // JSON handling support from Scalatra
@@ -17,7 +19,7 @@ case class ClassifierMetricsBundle(
 
 case class ClassifierMetricsBundleSeq(classifierMetricsBundles: Seq[ClassifierMetricsBundle]) {
   def size() = classifierMetricsBundles.size
-  def isEmpty() = size == 0
+  def isEmpty = size == 0
 }
 
 
@@ -41,18 +43,34 @@ class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
 
 
 case class RestAPIServletWithHBaseConfig(hBaseConf: Configuration)
-  extends RestAPIServlet with HBaseSessionSupport {
+  extends RestAPIServlet with HBaseSessionSupport with RestAPIServletRoutes {
 
   def hBaseConfig = hBaseConf
+  def connection = conn
+}
+
+case class RestAPIServletWithHBaseTestingUtil(hBaseTestingUtil: HBaseTestingUtility)
+  extends RestAPIServlet with HBaseSessionTestSupport with RestAPIServletRoutes {
+
+  def hBaseTestingUtility = hBaseTestingUtil
+  def connection = conn
+}
+
+trait RestAPIServletRoutes extends ScalatraServlet {
+  def connection: Connection
 
   get("/classifier/metrics.json") {
     val startRowKey = params("since").toLong
     val stopRowKey = params("until").toLong
-    val table = conn.getTable(TableName.valueOf("tablename"))
-    HBaseDAO.scan(table, startRowKey, stopRowKey).
-      filter(x => !x.isEmpty).
+
+    val table = connection.getTable(TableName.valueOf("metrics"))
+
+    val scanResults = HBaseDAO.scan(table, startRowKey, stopRowKey).
+      filter(x => x.isDefined).
       map {
-        case Some(bundle) => bundle
-        case None => None }
+      case Some(bundle) => bundle
+      case None => None }
+
+    Map("classifierMetricsBundles" -> scanResults)
   }
 }

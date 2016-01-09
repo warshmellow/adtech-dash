@@ -1,6 +1,7 @@
 package dei
 
-import org.apache.hadoop.hbase.HBaseConfiguration
+import org.apache.hadoop.hbase.HBaseTestingUtility
+import org.apache.hadoop.hbase.util.Bytes
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.junit.runner.RunWith
@@ -14,14 +15,50 @@ import org.scalatra.test.scalatest.ScalatraFlatSpec
 class RestAPIServletSpec extends ScalatraFlatSpec
   with Matchers with BeforeAndAfterAll with MockitoSugar {
   // `RestAPIServlet` is your app which extends ScalatraServlet
-  addServlet(new RestAPIServletWithHBaseConfig(HBaseConfiguration.create), "/*")
+  // addServlet(new RestAPIServletWithHBaseConfig(HBaseConfiguration.create), "/*")
+  // addServlet(classOf[RestAPIServlet], "/*")
+  val utility = new HBaseTestingUtility
+
+
+  addServlet(new RestAPIServletWithHBaseTestingUtil(utility), "/*")
 
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
   protected implicit val jsonFormats: Formats = DefaultFormats
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    utility.startMiniCluster()
+
+    // Define "metrics" table
+    val table = utility.createTable(Bytes.toBytes("metrics"), Bytes.toBytes("d"))
+    // Define contents of "metrics" table
+    val metricsBundles = List(
+      ClassifierMetricsBundle(
+      precision= 0.6,
+      recall= 0.7,
+      f1= 0.8,
+      timestamp= 1451793410L,
+      classifierLastRetrained= 1451793400L),
+      ClassifierMetricsBundle(
+        precision= 0.6,
+        recall= 0.7,
+        f1= 0.8,
+        timestamp= 1451793420L,
+        classifierLastRetrained= 1451793400L),
+      ClassifierMetricsBundle(
+        precision= 0.6,
+        recall= 0.7,
+        f1= 0.8,
+        timestamp= 1451793430L,
+        classifierLastRetrained= 1451793400L)
+    )
+    // Insert contents into "metrics" table
+    metricsBundles.foreach(record => HBaseDAO.put(table, HBaseDAO.toHBaseObj(record)))
+  }
+
   behavior of "GET classifier/metrics.json"
-  it should "respond with JSON without parameters" in {
+  ignore should "respond with JSON without parameters" in {
     get("/classifier/metrics.json") {
       status should equal(200)
     }
@@ -40,9 +77,15 @@ class RestAPIServletSpec extends ScalatraFlatSpec
       status should equal(200)
       parse(body).extract[ClassifierMetricsBundleSeq] shouldBe empty
     }
+
+    get("/classifier/metrics.json",
+      Map("since" -> nonEmptyStartRowKey.toString, "until" -> nonEmptyStopRowKey.toString)) {
+      status should equal(200)
+      parse(body).extract[ClassifierMetricsBundleSeq] should not be empty
+    }
   }
 
-  it should "respond with empty JSON when given parameters since >= until" in {
+  ignore should "respond with empty JSON when given parameters since >= until" in {
     get("/classifier/metrics.json",
       Map("since" -> "1451793500", "until" -> "1451793500")) {
       status should equal(200)
@@ -50,7 +93,7 @@ class RestAPIServletSpec extends ScalatraFlatSpec
     }
   }
 
-  it should "respond with bad request on non Long since/until" in {
+  ignore should "respond with bad request on non Long since/until" in {
     get("/classifier/metrics.json",
       Map("since" -> "foo", "until" -> "bar")) {
       status should equal(400)

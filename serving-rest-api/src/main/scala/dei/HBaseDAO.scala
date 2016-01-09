@@ -4,22 +4,21 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Success, Try}
 
 case class HBaseObj(
                      rowKey: Long,
                      columnFamily: String,
-                     columnValuePairs: Map[String, String])
+                     columnValuePairs: Map[String, Either[Double, Long]])
 
 object HBaseDAO {
   def toHBaseObj(metricsBundle: ClassifierMetricsBundle): HBaseObj = {
     val rowKey = metricsBundle.timestamp
     val columnFamily = "d"
     val columnValuePairs = Map(
-      "precision" -> metricsBundle.precision.toString,
-      "recall" -> metricsBundle.recall.toString,
-      "f1" -> metricsBundle.f1.toString,
-      "classifierLastRetrained" -> metricsBundle.classifierLastRetrained.toString
+      "precision" -> Left(metricsBundle.precision),
+      "recall" -> Left(metricsBundle.recall),
+      "f1" -> Left(metricsBundle.f1),
+      "classifierLastRetrained" -> Right(metricsBundle.classifierLastRetrained)
     )
     HBaseObj(rowKey, columnFamily, columnValuePairs)
   }
@@ -27,7 +26,11 @@ object HBaseDAO {
   def toPut(hBaseObj: HBaseObj) = {
     val p = new Put(Bytes.toBytes(hBaseObj.rowKey))
     hBaseObj.columnValuePairs.foreach {
-      case (column, value) =>
+      case (column, Left(value)) =>
+        p.addColumn(Bytes.toBytes(hBaseObj.columnFamily),
+          Bytes.toBytes(column),
+          Bytes.toBytes(value))
+      case (column, Right(value)) =>
         p.addColumn(Bytes.toBytes(hBaseObj.columnFamily),
           Bytes.toBytes(column),
           Bytes.toBytes(value))
@@ -81,9 +84,6 @@ object HBaseDAO {
     val resultsAsBundles = scanner.map(resultToClassifierMetricsBundle)
     scanner.close()
 
-    Try(resultsAsBundles.toList) match {
-      case Success(stuff) => stuff
-      case Failure(e) => List()
-    }
+    resultsAsBundles.toList
   }
 }
