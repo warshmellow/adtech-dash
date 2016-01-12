@@ -4,6 +4,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.{HBaseTestingUtility, TableName}
 import org.scalatra.ScalatraServlet
+import org.scalatra.scalate.ScalateSupport
 
 // JSON-related libraries
 import org.json4s.{DefaultFormats, Formats, JValue}
@@ -43,14 +44,16 @@ class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
 
 
 case class RestAPIServletWithHBaseConfig(hBaseConf: Configuration)
-  extends RestAPIServlet with HBaseSessionSupport with RestAPIServletRoutes {
+  extends RestAPIServlet with HBaseSessionSupport with RestAPIServletRoutes
+  with RestAPIServletViewRoutes {
 
   def hBaseConfig = hBaseConf
   def connection = conn
 }
 
 case class RestAPIServletWithHBaseTestingUtil(hBaseTestingUtil: HBaseTestingUtility)
-  extends RestAPIServlet with HBaseSessionTestSupport with RestAPIServletRoutes {
+  extends RestAPIServlet with HBaseSessionTestSupport with RestAPIServletRoutes
+  with RestAPIServletViewRoutes {
 
   def hBaseTestingUtility = hBaseTestingUtil
   def connection = conn
@@ -78,5 +81,12 @@ trait RestAPIServletRoutes extends ScalatraServlet {
       case None => None }
 
     Map("classifierMetricsBundles" -> scanResults)
+  }
+}
+
+trait RestAPIServletViewRoutes extends ScalatraServlet with ScalateSupport {
+  get("/") {
+    contentType = "text/html"
+    layoutTemplate("/views/index.ssp")
   }
 }

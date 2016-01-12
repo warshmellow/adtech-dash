@@ -102,6 +102,11 @@
       <artifactId>json4s-jackson_2.10</artifactId>
       <version>3.2.9</version>
     </dependency>
+    <dependency>
+      <groupId>org.scalatra</groupId>
+      <artifactId>scalatra-scalate_2.10</artifactId>
+      <version>2.3.1</version>
+    </dependency>
 
     <!-- Jetty and Scalatra -->
     <dependency>
