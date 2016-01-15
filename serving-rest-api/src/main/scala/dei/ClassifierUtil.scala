@@ -1,17 +1,15 @@
 package dei
 
-import org.apache.spark.mllib.classification.LogisticRegressionWithLBFGS
+import org.apache.spark.mllib.classification.ClassificationModel
+import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.rdd.RDD
 
-import scala.util.hashing.MurmurHash3
 import scala.math.abs
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import scala.util.hashing.MurmurHash3
 
 @SerialVersionUID(100L)
-object ClassifierTrain extends Serializable {
-  val model = new LogisticRegressionWithLBFGS()
-
+object ClassifierPreProcessing extends Serializable {
   def prefix(v: Seq[String]): Seq[String] =
     v.indices.zip(v).
     map { case(i, s) => "f" + i.toString + "_" + s }
@@ -52,6 +50,15 @@ object ClassifierTrain extends Serializable {
 
   def parseLineToLabeledPoint(line: String) =
     parsedToLabeledPoint(line.split("\t"))
+}
 
-  def trainModel(train: RDD[LabeledPoint]) = model.run(train)
+@SerialVersionUID(100L)
+object ClassifierEvaluation extends Serializable {
+  def predictionAndLabels(
+                           test: RDD[LabeledPoint],
+                           model: ClassificationModel) = test.map {
+    case LabeledPoint(label, features) =>
+      val prediction = model.predict(features)
+      (prediction, label)
+  }
 }
