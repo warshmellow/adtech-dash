@@ -2,6 +2,7 @@ package dei
 
 import scala.util.hashing.MurmurHash3
 import scala.math.abs
+import org.apache.spark.mllib.linalg.{Vector, Vectors}
 
 @SerialVersionUID(100L)
 object ClassifierTrain extends Serializable {
@@ -31,5 +32,16 @@ object ClassifierTrain extends Serializable {
   def quadFeaturesAndHashingTrick(v: Seq[String], numBits: Int = 24, seed: Int = 42):
     Seq[Boolean] = {
     hashingTrick(cross(prefix(v)), numBits, seed)
+  }
+
+  def toVector(v: Seq[Boolean]): Vector = {
+    Vectors.dense(v.map(x => if (x) 1.0 else 0.0).toArray)
+  }
+
+  def quadFeaturesAndHashingTrickVec(
+                                      v: Seq[String],
+                                      numBits: Int = 24,
+                                      seed: Int = 42): Vector = {
+    toVector(quadFeaturesAndHashingTrick(v, numBits, seed))
   }
 }
