@@ -1,9 +1,7 @@
 package dei
 
-import org.apache.spark.mllib.classification.ClassificationModel
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.RDD
 
 import scala.math.abs
 import scala.util.hashing.MurmurHash3
@@ -50,15 +48,4 @@ object ClassifierPreProcessing extends Serializable {
 
   def parseLineToLabeledPoint(line: String) =
     parsedToLabeledPoint(line.split("\t"))
-}
-
-@SerialVersionUID(100L)
-object ClassifierEvaluation extends Serializable {
-  def predictionAndLabels(
-                           test: RDD[LabeledPoint],
-                           model: ClassificationModel) = test.map {
-    case LabeledPoint(label, features) =>
-      val prediction = model.predict(features)
-      (prediction, label)
-  }
 }
