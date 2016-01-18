@@ -48,4 +48,9 @@ object ClassifierPreProcessing extends Serializable {
 
   def parseLineToLabeledPoint(line: String) =
     parsedToLabeledPoint(line.split("\t"))
+
+  def parseTimestampedLineToLabeledPoint(line: String) = {
+    val v = line.split("\t")
+    (v.head.toLong, parsedToLabeledPoint(v.drop(1)))
+  }
 }
