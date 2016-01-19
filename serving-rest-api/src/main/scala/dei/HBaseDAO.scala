@@ -6,10 +6,8 @@ import org.apache.hadoop.hbase.util.Bytes
 import scala.collection.JavaConversions._
 
 case class ClassifierMetricsBundle(
-                                    precision: Double,
-                                    recall: Double,
-                                    f1: Double,
                                     timestamp: Long,
+                                    auPRC: Double,
                                     classifierLastRetrained: Long)
 
 case class ClassifierMetricsBundleSeq(classifierMetricsBundles: Seq[ClassifierMetricsBundle]) {
@@ -27,9 +25,7 @@ object HBaseDAO {
     val rowKey = metricsBundle.timestamp
     val columnFamily = "d"
     val columnValuePairs = Map(
-      "precision" -> Left(metricsBundle.precision),
-      "recall" -> Left(metricsBundle.recall),
-      "f1" -> Left(metricsBundle.f1),
+      "auPRC" -> Left(metricsBundle.auPRC),
       "classifierLastRetrained" -> Right(metricsBundle.classifierLastRetrained)
     )
     HBaseObj(rowKey, columnFamily, columnValuePairs)
@@ -54,6 +50,9 @@ object HBaseDAO {
 
   def put(table: Table, hBaseObj: HBaseObj) = table.put(toPut(hBaseObj))
 
+  def put(table: Table, metricsBundle: ClassifierMetricsBundle): Unit =
+    put(table, toHBaseObj(metricsBundle))
+
   def get(table: Table, rowKey: Long): Option[ClassifierMetricsBundle] = {
     resultToClassifierMetricsBundle(table.get(toGet(rowKey)))
   }
@@ -62,24 +61,20 @@ object HBaseDAO {
     Option[ClassifierMetricsBundle] = {
     if (result.isEmpty) None
     else {
-      val paramVal = List("precision", "recall", "f1", "timestamp", "classifierLastRetrained").map {
+      val paramVal = List("timestamp", "auPRC", "classifierLastRetrained").map {
         x =>
           if (x == "timestamp") (x, result.getRow)
           else (x, result.getValue(Bytes.toBytes("d"), Bytes.toBytes(x)))
       }
       val paramValMap = paramVal.toMap
 
-      val p = Bytes.toDouble(paramValMap("precision"))
-      val r = Bytes.toDouble(paramValMap("recall"))
-      val f = Bytes.toDouble(paramValMap("f1"))
       val t = Bytes.toLong(paramValMap("timestamp"))
+      val a = Bytes.toDouble(paramValMap("auPRC"))
       val c = Bytes.toLong(paramValMap("classifierLastRetrained"))
 
       Some(ClassifierMetricsBundle(
-        precision= p,
-        recall= r,
-        f1= f,
         timestamp= t,
+        auPRC= a,
         classifierLastRetrained= c
       ))
     }
@@ -96,6 +91,6 @@ object HBaseDAO {
     val resultsAsBundles = scanner.map(resultToClassifierMetricsBundle)
     scanner.close()
 
-    resultsAsBundles.toList
+    resultsAsBundles.toSeq
   }
 }
