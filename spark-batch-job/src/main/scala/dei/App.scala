@@ -21,8 +21,8 @@ object App {
     sc.hadoopConfiguration.addResource(new java.io.File(path).toURI.toURL)
 
     // Load data and hash
-    val rawData = sc.textFile("s3n://warshmellow-adtech-dash/data/dac_sample_with_ms.txt")
-    rawData.cache()
+    val rawData = sc.textFile("s3n://warshmellow-adtech-dash/data/trainTenPercentWithFakeMS.txt")
+    // rawData.cache()
     val hashed = rawData.map(line => ClassifierPreProcessing.
       parseTimestampedLineToLabeledPoint(line))
     hashed.cache()
