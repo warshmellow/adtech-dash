@@ -5,6 +5,18 @@ import org.apache.hadoop.hbase.util.Bytes
 
 import scala.collection.JavaConversions._
 
+case class ClassifierMetricsBundle(
+                                    precision: Double,
+                                    recall: Double,
+                                    f1: Double,
+                                    timestamp: Long,
+                                    classifierLastRetrained: Long)
+
+case class ClassifierMetricsBundleSeq(classifierMetricsBundles: Seq[ClassifierMetricsBundle]) {
+  def size() = classifierMetricsBundles.size
+  def isEmpty = size == 0
+}
+
 case class HBaseObj(
                      rowKey: Long,
                      columnFamily: String,

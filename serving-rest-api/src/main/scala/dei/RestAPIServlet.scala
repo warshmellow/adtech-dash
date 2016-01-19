@@ -11,19 +11,6 @@ import org.json4s.{DefaultFormats, Formats, JValue}
 // JSON handling support from Scalatra
 import org.scalatra.json._
 
-case class ClassifierMetricsBundle(
-                                    precision: Double,
-                                    recall: Double,
-                                    f1: Double,
-                                    timestamp: Long,
-                                    classifierLastRetrained: Long)
-
-case class ClassifierMetricsBundleSeq(classifierMetricsBundles: Seq[ClassifierMetricsBundle]) {
-  def size() = classifierMetricsBundles.size
-  def isEmpty = size == 0
-}
-
-
 class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
 
   // Sets up automatic case class to JSON output serialization, required by
