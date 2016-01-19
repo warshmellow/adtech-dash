@@ -35,22 +35,16 @@ class RestAPIServletSpec extends ScalatraFlatSpec
     // Define contents of "metrics" table
     val metricsBundles = List(
       ClassifierMetricsBundle(
-      precision= 0.6,
-      recall= 0.7,
-      f1= 0.8,
       timestamp= 1451793410L,
+      auPRC=0.3,
       classifierLastRetrained= 1451793400L),
       ClassifierMetricsBundle(
-        precision= 0.6,
-        recall= 0.7,
-        f1= 0.8,
         timestamp= 1451793420L,
+        auPRC=0.3,
         classifierLastRetrained= 1451793400L),
       ClassifierMetricsBundle(
-        precision= 0.6,
-        recall= 0.7,
-        f1= 0.8,
         timestamp= 1451793430L,
+        auPRC=0.4,
         classifierLastRetrained= 1451793400L)
     )
     // Insert contents into "metrics" table
