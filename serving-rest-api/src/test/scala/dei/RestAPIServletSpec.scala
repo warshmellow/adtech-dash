@@ -1,6 +1,7 @@
 package dei
 
 import org.apache.hadoop.hbase.HBaseTestingUtility
+import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.util.Bytes
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -8,8 +9,26 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatra.ScalatraBase
 import org.scalatra.test.scalatest.ScalatraFlatSpec
 
+
+trait HBaseSessionTestSupport { this: ScalatraBase =>
+  def hBaseTestingUtility: HBaseTestingUtility
+  var conn: Connection = null
+
+  before() {
+    conn = hBaseTestingUtility.getConnection
+  }
+}
+
+case class RestAPIServletWithHBaseTestingUtil(hBaseTestingUtil: HBaseTestingUtility)
+  extends RestAPIServlet with HBaseSessionTestSupport with RestAPIServletRoutes
+  with RestAPIServletViewRoutes {
+
+  def hBaseTestingUtility = hBaseTestingUtil
+  def connection = conn
+}
 
 @RunWith(classOf[JUnitRunner])
 class RestAPIServletSpec extends ScalatraFlatSpec
