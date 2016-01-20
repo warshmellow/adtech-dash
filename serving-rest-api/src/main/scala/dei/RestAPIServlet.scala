@@ -3,7 +3,7 @@ package dei
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.Connection
-import org.scalatra.ScalatraServlet
+import org.scalatra.{CorsSupport, ScalatraServlet}
 import org.scalatra.scalate.ScalateSupport
 
 // JSON-related libraries
@@ -11,7 +11,7 @@ import org.json4s.{DefaultFormats, Formats, JValue}
 // JSON handling support from Scalatra
 import org.scalatra.json._
 
-class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
+class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport with CorsSupport {
 
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
@@ -23,6 +23,10 @@ class RestAPIServlet extends ScalatraServlet with JacksonJsonSupport {
 
   notFound {
     serveStaticResource() getOrElse resourceNotFound()
+  }
+
+  options("/*"){
+    response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
   }
 
   override def render(value: JValue)(implicit formats: Formats): JValue =

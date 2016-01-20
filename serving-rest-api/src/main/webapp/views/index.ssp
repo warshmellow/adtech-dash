@@ -21,19 +21,19 @@
             var bundle;
             for (var i = 0; i < bundles.length; i++) {
                 bundle = bundles[i];
-                result.push([bundle["timestamp"] * 1000, bundle[metric]]);
+                result.push([bundle["timestamp"], bundle[metric]]);
             }
             return result
         };
 
         $.getJSON(
-            'http://b8819a6d.ngrok.io/classifier/metrics.json?since=1452480584&until=1452494983',
+            'http://ec2-52-90-198-107.compute-1.amazonaws.com:8081/classifier/metrics.json?since=1453183367829&until=1453187951889',
             function (data) {
 
                 // Create the chart
                 $('#container').highcharts('StockChart', {
                     rangeSelector : {
-                    selected : 4
+                    selected : 10
                 },
 
                 title : {
@@ -41,25 +41,11 @@
                 },
 
                 series : [{
-                    name : 'Precision',
-                    data : getMetric(data, "precision"),
+                    name : 'Area Under Precision-Recall Curve',
+                    data : getMetric(data, "auPRC"),
                     tooltip: {
-                        valueDecimals: 2
+                        valueDecimals: 4
                     }
-                    },
-                    {
-                        name : 'Recall',
-                        data : getMetric(data, "recall"),
-                        tooltip: {
-                            valueDecimals: 2
-                        }
-                    },
-                    {
-                        name : 'F1',
-                        data : getMetric(data, "f1"),
-                        tooltip: {
-                            valueDecimals: 2
-                        }
                     }]
                 });
             });
