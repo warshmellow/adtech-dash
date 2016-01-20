@@ -34,6 +34,7 @@ object App {
     // Train classifier on hashed data (Logistic Regression LBFGS)
     val model = new LogisticRegressionWithLBFGS().
       setIntercept(true).
+      setValidateData(false).
       run(train)
 
     // Get classifier retrain time
@@ -57,7 +58,7 @@ object App {
     val numBins = 1000
     val auPRByMin =
       for {
-        n <- Stream(0).withFilter { case n => lowestWholeMin + n.minutes <= highestWholeMin }
+        n <- Stream.from(0).takeWhile(n => lowestWholeMin + n.minutes <= highestWholeMin)
         upperMin = lowestWholeMin + n.minutes
         test = trainWithTimestampsAsDates.filter {
           case (t, _) => t < upperMin
@@ -68,7 +69,7 @@ object App {
         bcm = new BinaryClassificationMetrics(scoresAndLabels, numBins)
       } yield (upperMin.getMillis, bcm.areaUnderPR())
 
-    val eagerAuPRByMin = auPRByMin.toSeq
+    val eagerAuPRByMin = auPRByMin.toList
 
     // Load HBase config and create connection
     val hBaseConfig = HBaseConfiguration.create
