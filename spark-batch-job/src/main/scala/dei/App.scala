@@ -55,7 +55,7 @@ object App {
     val lowestWholeMin = firstDateTime.minuteOfDay().roundCeilingCopy()
     val highestWholeMin = lastDateTime.minuteOfDay().roundCeilingCopy()
 
-    val numBins = 1000
+    // val numBins = 1000
     val auPRByMin =
       for {
         n <- Stream.from(0).takeWhile(n => lowestWholeMin + n.minutes <= highestWholeMin)
@@ -66,7 +66,8 @@ object App {
           case (_, lp) => lp
         }
         scoresAndLabels = ClassifierPreProcessing.predictionAndLabels(test, model)
-        bcm = new BinaryClassificationMetrics(scoresAndLabels, numBins)
+        // bcm = new BinaryClassificationMetrics(scoresAndLabels, numBins)
+        bcm = new BinaryClassificationMetrics(scoresAndLabels)
       } yield (upperMin.getMillis, bcm.areaUnderPR())
 
     val eagerAuPRByMin = auPRByMin.toList
