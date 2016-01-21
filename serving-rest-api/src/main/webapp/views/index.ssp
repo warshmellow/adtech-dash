@@ -27,7 +27,7 @@
         };
 
         $.getJSON(
-            'http://ec2-52-90-198-107.compute-1.amazonaws.com:8081/classifier/metrics.json?since=1453183367829&until=1453187951889',
+            'http://adtech-dash.publicvm.com/classifier/metrics.json?since=1453183367829&until=1453187951889',
             function (data) {
 
                 // Create the chart
