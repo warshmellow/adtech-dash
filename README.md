@@ -1,7 +1,7 @@
 # Adtech-dash: Scalable Ad Classification Pipeline, REST API, and Visualization
 
 #### David Chen
-Data Scientist in Residence, Sept 2015 - Dec 2015
+Data Scientist in Residence, 2015
 
 ---
 
